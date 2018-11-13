@@ -36,6 +36,7 @@
         seeing-is-believing
         smartparens
         rake
+        (lsp-ruby :requires lsp-mode lsp-ui company-lsp)
         ))
 
 (defun ruby/init-bundler ()
@@ -81,6 +82,7 @@
       (spacemacs/declare-prefix-for-mode 'enh-ruby-mode "mr" "refactor/RuboCop/robe")
       (spacemacs/declare-prefix-for-mode 'enh-ruby-mode "mt" "test")
       (spacemacs/declare-prefix-for-mode 'enh-ruby-mode "mT" "toggle"))
+      (spacemacs/add-to-hook 'enh-ruby-mode-hook '(spacemacs//ruby-setup-backend))
     :config
     (spacemacs/set-leader-keys-for-major-mode 'enh-ruby-mode
       "T{" 'enh-ruby-toggle-block)))
@@ -153,6 +155,7 @@
 
 (defun ruby/init-robe ()
   (use-package robe
+    :if (eq ruby-backend 'robe)
     :defer t
     :init
     (progn
@@ -244,6 +247,7 @@
       (spacemacs/declare-prefix-for-mode 'ruby-mode "mr" "refactor/RuboCop/robe")
       (spacemacs/declare-prefix-for-mode 'ruby-mode "mt" "test")
       (spacemacs/declare-prefix-for-mode 'ruby-mode "mT" "toggle")
+      (spacemacs/add-to-hook 'ruby-mode-hook '(spacemacs//ruby-setup-backend))
       (spacemacs/add-to-hooks
        'spacemacs/ruby-maybe-highlight-debugger-keywords
        '(ruby-mode-local-vars-hook enh-ruby-mode-local-vars-hook)))
@@ -355,3 +359,20 @@
         (spacemacs/set-leader-keys-for-major-mode mode
           "@@" 'seeing-is-believing-run
           "@c" 'seeing-is-believing-clear)))))
+
+(defun ruby/init-lsp-ruby ()
+  (use-package lsp-ruby
+    :commands lsp-ruby-enable
+    :defer t
+    :if (eq ruby-backend 'lsp)
+    :config
+    (progn
+      (if (configuration-layer/package-used-p 'enh-ruby-mode)
+          (progn
+            (spacemacs/lsp-bind-keys-for-mode 'enh-ruby-mode)
+            (spacemacs//setup-lsp-jump-handler 'enh-ruby-mode)
+            (add-hook 'enh-ruby-mode-hook #'lsp-ruby-enable))
+        (progn
+          (spacemacs/lsp-bind-keys-for-mode 'ruby-mode)
+          (spacemacs//setup-lsp-jump-handler 'ruby-mode)
+          (add-hook 'ruby-mode-hook #'lsp-ruby-enable))))))

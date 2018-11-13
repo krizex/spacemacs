@@ -70,3 +70,43 @@ Called interactively it prompts for a directory."
     (highlight-lines-matching-regexp "byebug")
     (highlight-lines-matching-regexp "binding.irb")
     (highlight-lines-matching-regexp "binding.pry")))
+
+
+;; LSP
+
+(defun spacemacs//ruby-setup-backend ()
+  "Conditionally setup rust backend."
+  (pcase ruby-backend
+    ('robe (spacemacs//ruby-setup-robe))
+    ('lsp (spacemacs//ruby-setup-lsp))))
+
+(defun spacemacs//ruby-setup-robe ())
+
+(defun spacemacs//ruby-setup-lsp ()
+  "Setup lsp backend"
+  (if (configuration-layer/layer-used-p 'lsp)
+    (progn
+      (lsp-ruby-enable))
+    (message "`lsp' layer is not installed, please add `lsp' layer to your dotfile.")))
+
+(defun spacemacs//ruby-setup-company ()
+  "Conditionally setup company based on backend."
+  (pcase ruby-backend
+    ('robe (spacemacs//ruby-setup-robe-company))
+    ('lsp (spacemacs//ruby-setup-lsp-company))))
+
+
+(defun spacemacs//ruby-setup-robe-company ())
+
+(defun spacemacs//ruby-setup-lsp-company ()
+  "Setup lsp auto-completion."
+  (if (configuration-layer/layer-used-p 'lsp)
+    (progn
+      (if (configuration-layer/package-used-p 'enh-ruby-mode)
+          (spacemacs|add-company-backends
+            :backends company-lsp
+            :modes enh-ruby-mode)
+        (spacemacs|add-company-backends
+          :backends company-lsp
+          :modes ruby-mode)))
+    (message "`lsp' layer is not installed, please add `lsp' layer to your dotfile.")))
